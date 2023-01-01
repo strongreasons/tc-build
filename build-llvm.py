@@ -1041,6 +1041,8 @@ def stage_specific_cmake_defines(args, dirs, stage):
         if args.build_type == "Release":
             defines['LLVM_ENABLE_WARNINGS'] = 'OFF'
             defines['LLVM_INCLUDE_TESTS'] = 'OFF'
+            defines['LLVM_ENABLE_ASSERTIONS'] = 'OFF'
+            defines['LVM_ENABLE_BACKTRACES'] = 'OFF'
 
         # Build with assertions enabled if requested (will slow down compilation
         # so it is not on by default)
