@@ -1040,6 +1040,7 @@ def stage_specific_cmake_defines(args, dirs, stage):
         # We don't care about warnings if we are building a release build
         if args.build_type == "Release":
             defines['LLVM_ENABLE_WARNINGS'] = 'OFF'
+            defines['LLVM_INCLUDE_TESTS'] = 'OFF'
 
         # Build with assertions enabled if requested (will slow down compilation
         # so it is not on by default)
