@@ -64,8 +64,7 @@ CC=clang CXX=clang++ CFLAGS=-O3 CXXFLAGS=-O3 ./build-llvm.py \
     --targets "ARM;AArch64;X86" \
     --shallow-clone \
     --quiet-cmake \
-    --build-type "Release" \
-    --branch release/15.x 2>&1 | tee build.log
+    --build-type "Release" 2>&1 | tee build.log
 
 # Check if the final clang binary exists or not.
 for clang in install/bin/clang-1*; do
@@ -124,7 +123,7 @@ tg_post_msg "<b>$LLVM_NAME: Toolchain compilation Finished</b>%0A<b>Clang Versio
 # Update Git repository
 git config --global user.name "$GH_USERNAME"
 git config --global user.email "$GH_EMAIL"
-git clone -b release/15.x "https://$GH_USERNAME:$GH_TOKEN@$GH_PUSH_REPO_URL" rel_repo
+git clone "https://$GH_USERNAME:$GH_TOKEN@$GH_PUSH_REPO_URL" rel_repo
 pushd rel_repo || exit
 rm -fr ./*
 cp -r ../install/* .
