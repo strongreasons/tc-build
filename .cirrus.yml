@@ -6,7 +6,8 @@ env:
     TG_CHAT_ID: ENCRYPTED[!5b4e498bef3eda71b5055ed11abcea1e428edfb2baa52727721f5f22dc11e3dfa3d2e61c6d2d0deb84f60e4c960a2025!]
     GH_TOKEN: ENCRYPTED[!c6f44e3b4a0b7b6bbd88e3ebea00b1a4333de87c4a8f25eae81589ba0dbdd43576a71bf1d30459edec3ad98c08bb6c5c!]
     TG_TOKEN: ENCRYPTED[!b37a9f2a43e462f4e339ec254eb15f26254b3f3482ec4a49fb0d37050860975e99066c479da9f14c6a4e3f2cca5f9076!]
-          
+    CIRRUS_CRON: weekly
+
 container:
   image: 31482281/codespace:latest
   cpu: 8
