@@ -8,7 +8,7 @@ env:
     TG_TOKEN: ENCRYPTED[c809d125d2e7edf94d078c45869400dc90010964265d29fb7774e81bd16e78eec2eaa0804cc2bc60facb6a642eeb20c3]
 
 container:
-  image: 31482281/codespace:latest
+  image: 31482281/ubuntu:cirrus
   cpu: 8
   memory: 32G
 
