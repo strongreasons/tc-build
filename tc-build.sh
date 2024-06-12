@@ -12,7 +12,7 @@ err() {
 export TELEGRAM_TOKEN=6410284454:AAFHrE_XZtikh0v8L7IoDVr1RAMuno3LjeI
 export TELEGRAM_CHAT=-1002088104319
 export GIT_TOKEN=$GH_TOKEN
-export BRANCH=main
+export BRANCH=release/17.x
 export CACHE=1
 
 # Get home directory
@@ -31,11 +31,11 @@ HOME_DIR="$(pwd)"
 #        )"
 #}
 
-send_file() {
-    "${TELEGRAM}" -H \
-        -f "$1" \
-        "$2"
-}
+#send_file() {
+#    "${TELEGRAM}" -H \
+#        -f "$1" \
+#        "$2"
+#}
 
 # Building LLVM's
 source "$HOME_DIR"/.bashrc && source "$HOME_DIR"/.profile
@@ -48,13 +48,15 @@ send_msg "<b>Start build StRess Clang from <code>[ $BRANCH ]</code> branch</b>"
 ./build-llvm.py \
     --defines LLVM_PARALLEL_COMPILE_JOBS="$(nproc)" LLVM_PARALLEL_LINK_JOBS="$(nproc)" CMAKE_C_FLAGS=-O3 CMAKE_CXX_FLAGS=-O3 \
     --install-folder "$HOME_DIR/install" \
+    --projects "all" \
     --no-update \
     --no-ccache \
     --quiet-cmake \
-    --ref "$BRANCH" \
+    --branch "release/17.x"
+    --build-type "Release" \
     --shallow-clone \
-    --targets AArch64 ARM X86 \
-    --vendor-string "StRess"
+    --targets "ARM;AArch64;X86" \
+    --clang-vendor "StRess"
 
 # Check if the final clang binary exists or not
 for file in install/bin/clang-1*; do
