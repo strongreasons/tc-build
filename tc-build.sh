@@ -12,51 +12,63 @@ err() {
 export TELEGRAM_TOKEN=6410284454:AAFHrE_XZtikh0v8L7IoDVr1RAMuno3LjeI
 export TELEGRAM_CHAT=-1002088104319
 export GIT_TOKEN=$GH_TOKEN
-export BRANCH=release/17.x
+export BRANCH=master
 export CACHE=1
 
 # Get home directory
 HOME_DIR="$(pwd)"
 
 # Telegram Setup
-#git clone --depth=1 https://github.com/elynord/Telegram Telegram
+git clone --depth=1 https://github.com/elynord/Telegram Telegram
 
-#TELEGRAM="$HOME_DIR/Telegram/telegram"
-#send_msg() {
-#    "${TELEGRAM}" -H -D \
-#        "$(
-#            for POST in "${@}"; do
-#                echo "${POST}"
-#            done
-#        )"
-#}
+TELEGRAM="$HOME_DIR/Telegram/telegram"
+chmod +x $HOME_DIR/Telegram/telegram
+send_msg() {
+    "${TELEGRAM}" -H -D \
+        "$(
+            for POST in "${@}"; do
+                echo "${POST}"
+            done
+        )"
+}
 
-#send_file() {
-#    "${TELEGRAM}" -H \
-#        -f "$1" \
-#        "$2"
-#}
+send_file() {
+    "${TELEGRAM}" -H \
+        -f "$1" \
+        "$2"
+}
+
+#Setup CCACHE
+if [[ $CACHE -eq 1 ]]; then
+    export USE_CCACHE=1
+    export CCACHE_DIR="$HOME/.ccache"
+    ccache -M 4096G  
+        ccache -s 
+            current_size=$(ccache -s | grep "^cache size" | awk '{print $3}')
+                if [[ $current_size > 4096G ]]; then 
+                        echo "Memangkas ccache..."
+                                ccache -z  
+                                        ccache -F 0 
+                                            fi
+                                            if [[ $- == *i* ]]; then  
+                                                trim_ccache 
+                                                fi
+fi
 
 # Building LLVM's
-source "$HOME_DIR"/.bashrc && source "$HOME_DIR"/.profile
-if [[ $CACHE -eq 1 ]]; then
-    ccache -M 256G
-    export USE_CCACHE=1
-fi
 msg "Building LLVM's ..."
-send_msg "<b>Start build StRess Clang from <code>[ $BRANCH ]</code> branch</b>"
+send_msg "<b>Start build ElectroWizard-Clang from <code>[ $BRANCH ]</code> branch</b>"
+chmod +x build-llvm.py
 ./build-llvm.py \
     --defines LLVM_PARALLEL_COMPILE_JOBS="$(nproc)" LLVM_PARALLEL_LINK_JOBS="$(nproc)" CMAKE_C_FLAGS=-O3 CMAKE_CXX_FLAGS=-O3 \
     --install-folder "$HOME_DIR/install" \
-    --projects "all" \
     --no-update \
     --no-ccache \
     --quiet-cmake \
-    --branch "release/17.x"
-    --build-type "Release" \
+    --ref "$BRANCH" \
     --shallow-clone \
-    --targets "ARM;AArch64;X86" \
-    --clang-vendor "StRess"
+    --targets AArch64 ARM X86 \
+    --vendor-string "ElectroWizard" \
 
 # Check if the final clang binary exists or not
 for file in install/bin/clang-1*; do
@@ -71,22 +83,19 @@ done
 
 # Build binutils
 msg "Build binutils ..."
+chmod +x build-binutils.py
 ./build-binutils.py \
     --install-folder "$HOME_DIR/install" \
     --targets arm aarch64 x86_64
 
-# Remove unused products
 rm -fr install/include
 rm -f install/lib/*.a install/lib/*.la
 
-# Strips remaining products
 for f in $(find install -type f -exec file {} \; | grep 'not stripped' | awk '{print $1}'); do
     strip -s "${f::-1}"
 done
 
-# Set executable rpaths so setting LD_LIBRARY_PATH isn't necessary
 for bin in $(find install -mindepth 2 -maxdepth 3 -type f -exec file {} \; | grep 'ELF .* interpreter' | awk '{print $1}'); do
-    # Remove last character from file output (':')
     bin="${bin::-1}"
 
     echo "$bin"
@@ -103,11 +112,15 @@ llvm_commit="$(git rev-parse HEAD)"
 short_llvm_commit="$(cut -c-8 <<<"$llvm_commit")"
 popd || exit
 llvm_commit_url="https://github.com/llvm/llvm-project/commit/$short_llvm_commit"
-clang_version="$("$HOME_DIR"/install/bin/clang --version | head -n1 | cut -d' ' -f4)"
+clang_output="$("$HOME_DIR"/install/bin/clang --version)"
+if [[ $clang_output =~ version\ ([0-9.]+) ]]; then
+    clang_version="${BASH_REMATCH[1]}"
+    clang_version="${clang_version%git}"
+fi
 build_date="$(TZ=Asia/Jakarta date +"%Y-%m-%d")"
-tags="StRess-Clang-$clang_version-release"
-file="StRess-Clang-$clang_version.tar.gz"
-clang_link="https://github.com/strongreasons/stress-clang/releases/download/$tags/$file"
+tags="ElectroWizard-Clang-$clang_version-release"
+file="ElectroWizard-Clang-$clang_version.tar.gz"
+clang_link="https://github.com/strongreasons/ElectroWizard-Clang/releases/download/$tags/$file"
 
 # Get binutils version
 binutils_version=$(grep "LATEST_BINUTILS_RELEASE" build-binutils.py)
@@ -127,7 +140,7 @@ tar -czvf ../"$file" .
 popd || exit
 
 # Push
-git clone "https://strongreasons:$GIT_TOKEN@github.com/strongreasons/stress-clang.git" rel_repo
+git clone "https://strongreasons:$GIT_TOKEN@github.com/strongreasons/ElectroWizard-Clang" rel_repo
 pushd rel_repo || exit
 if [ -d "$BRANCH" ]; then
     echo "$clang_link" >"$BRANCH"/link.txt
@@ -138,7 +151,7 @@ else
     cp -r "$HOME_DIR"/install/README.md "$BRANCH"
 fi
 git add .
-git commit -asm "StRess-Clang-$clang_version: $(TZ=Asia/Jakarta date +"%Y%m%d")"
+git commit -asm "ElectroWizard-Clang-$clang_version: $(TZ=Asia/Jakarta date +"%Y%m%d")"
 git push -f origin main
 
 # Check tags already exists or not
@@ -149,49 +162,50 @@ popd || exit
 # Upload to github release
 failed=n
 if [ "$overwrite" == "y" ]; then
+    chmod +x github-release
     ./github-release edit \
         --security-token "$GIT_TOKEN" \
-        --user "StRess-Stuff" \
-        --repo "StRess-Clang" \
+        --user "strongreasons" \
+        --repo "ElectroWizard-Clang" \
         --tag "$tags" \
-        --description "$(cat "$HOME_DIR"/install/README.md)"
+        --description "$(cat "$(pwd)"/install/README.md)"
 
     ./github-release upload \
         --security-token "$GIT_TOKEN" \
-        --user "StRess-Stuff" \
-        --repo "StRess-Clang" \
+        --user "strongreasons" \
+        --repo "ElectroWizard-Clang" \
         --tag "$tags" \
         --name "$file" \
-        --file "$HOME_DIR/$file" \
+        --file "$(pwd)/$file" \
         --replace || failed=y
 else
     ./github-release release \
         --security-token "$GIT_TOKEN" \
-        --user "StRess-Stuff" \
-        --repo "StRess-Clang" \
+        --user "strongreasons" \
+        --repo "ElectroWizard-Clang" \
         --tag "$tags" \
-        --description "$(cat "$HOME_DIR"/install/README.md)"
+        --description "$(cat "$(pwd)"/install/README.md)"
 
     ./github-release upload \
         --security-token "$GIT_TOKEN" \
-        --user "StRess-Stuff" \
-        --repo "StRess-Clang" \
+        --user "strongreasons" \
+        --repo "ElectroWizard-Clang" \
         --tag "$tags" \
         --name "$file" \
-        --file "$HOME_DIR/$file" || failed=y
+        --file "$(pwd)/$file" || failed=y
 fi
 
 # Handle uploader if upload failed
 while [ "$failed" == "y" ]; do
     failed=n
-    msg "Upload again"
+    chmod +x ./github-release
     ./github-release upload \
         --security-token "$GIT_TOKEN" \
-        --user "StRess-Stuff" \
-        --repo "StRess-Clang" \
+        --user "strongreasons" \
+        --repo "ElectroWizard-Clang" \
         --tag "$tags" \
         --name "$file" \
-        --file "$HOME_DIR/$file" \
+        --file "$(pwd)/$file" \
         --replace || failed=y
 done
 
@@ -207,5 +221,5 @@ send_msg "
 <b>Compile Based : </b>
 * <a href='$llvm_commit_url'>$llvm_commit_url</a>
 <b>Push Repository : </b>
-* <a href='https://github.com/strongreasons/stress-clang.git'>StRess-Clang</a>
+* <a href='https://github.com/strongreasons/ElectroWizard-Clang.git'>ElectroWizard-Clang</a>
 <b>-------------------------------------------------</b>"
