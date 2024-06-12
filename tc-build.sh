@@ -19,17 +19,17 @@ export CACHE=1
 HOME_DIR="$(pwd)"
 
 # Telegram Setup
-git clone --depth=1 https://github.com/elynord/Telegram Telegram
+#git clone --depth=1 https://github.com/elynord/Telegram Telegram
 
-TELEGRAM="$HOME_DIR/Telegram/telegram"
-send_msg() {
-    "${TELEGRAM}" -H -D \
-        "$(
-            for POST in "${@}"; do
-                echo "${POST}"
-            done
-        )"
-}
+#TELEGRAM="$HOME_DIR/Telegram/telegram"
+#send_msg() {
+#    "${TELEGRAM}" -H -D \
+#        "$(
+#            for POST in "${@}"; do
+#                echo "${POST}"
+#            done
+#        )"
+#}
 
 send_file() {
     "${TELEGRAM}" -H \
