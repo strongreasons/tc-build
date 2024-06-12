@@ -11,7 +11,7 @@ err() {
 # Environment Config
 export TELEGRAM_TOKEN=6410284454:AAFHrE_XZtikh0v8L7IoDVr1RAMuno3LjeI
 export TELEGRAM_CHAT=-1002088104319
-export GH_TOKEN=$GH_TOKEN
+export GIT_TOKEN=$GH_TOKEN
 export BRANCH=main
 export CACHE=1
 
