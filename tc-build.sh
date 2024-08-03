@@ -52,7 +52,7 @@ chmod +x ./build-llvm.py
     --branch "release/18.x" \
     --shallow-clone \
     --targets AArch64 \
-    --clang-string "ElectroWizard"
+    --clang-vendor "ElectroWizard"
 
 # Check if the final clang binary exists or not
 for file in install/bin/clang-1*; do
