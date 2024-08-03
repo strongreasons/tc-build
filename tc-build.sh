@@ -41,9 +41,12 @@ send_file() {
 #Setup CCACHE
 if [[ $CCACHE -eq 1 ]]; then
     export USE_CCACHE=1
-    export CCACHE_DIR="$HOME/.ccache"
+    export CCACHE_DIR="$HOME/ccache"
+    export CCACHE_EXEC=$(which ccache)
     chmod +x $CCACHE_DIR
-    ccache -M 4096G
+    ccache -M 100G -F 0
+        ccache -o compression=true
+        ccache -z
         ccache -s
             current_size=$(ccache -s | grep "^cache size" | awk '{print $3}')
                 if [[ $current_size > 4096G ]]; then 
@@ -66,10 +69,10 @@ chmod +x build-llvm.py
     --no-update \
     --no-ccache \
     --quiet-cmake \
-    --ref "$BRANCH" \
+    --ref "release/18.x" \
     --shallow-clone \
-    --targets AArch64 ARM X86 \
-    --vendor-string "ElectroWizard" \
+    --targets ARM AArch64 X86 \
+    --vendor-string "ElectroWizard"
 
 # Check if the final clang binary exists or not
 for file in install/bin/clang-1*; do
