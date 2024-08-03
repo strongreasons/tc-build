@@ -13,7 +13,7 @@ export TELEGRAM_TOKEN=6410284454:AAFHrE_XZtikh0v8L7IoDVr1RAMuno3LjeI
 export TELEGRAM_CHAT=-1002088104319
 export GIT_TOKEN=$GH_TOKEN
 export BRANCH=master
-export CACHE=1
+export CCACHE=1
 
 # Get home directory
 HOME_DIR="$(pwd)"
@@ -39,11 +39,12 @@ send_file() {
 }
 
 #Setup CCACHE
-if [[ $CACHE -eq 1 ]]; then
+if [[ $CCACHE -eq 1 ]]; then
     export USE_CCACHE=1
     export CCACHE_DIR="$HOME/.ccache"
-    ccache -M 4096G  
-        ccache -s 
+    chmod +x $CCACHE_DIR
+    ccache -M 4096G
+        ccache -s
             current_size=$(ccache -s | grep "^cache size" | awk '{print $3}')
                 if [[ $current_size > 4096G ]]; then 
                         echo "Memangkas ccache..."
@@ -53,7 +54,7 @@ if [[ $CACHE -eq 1 ]]; then
                                             if [[ $- == *i* ]]; then  
                                                 trim_ccache 
                                                 fi
-fi
+                                                fi
 
 # Building LLVM's
 msg "Building LLVM's ..."
