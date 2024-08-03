@@ -38,41 +38,20 @@ send_file() {
         "$2"
 }
 
-#Setup CCACHE
-if [[ $CCACHE -eq 1 ]]; then
-    export USE_CCACHE=1
-    export CCACHE_DIR="$HOME/ccache"
-    export CCACHE_EXEC=$(which ccache)
-    chmod +x $CCACHE_DIR
-    ccache -M 100G -F 0
-        ccache -o compression=true
-        ccache -z
-        ccache -s
-            current_size=$(ccache -s | grep "^cache size" | awk '{print $3}')
-                if [[ $current_size > 4096G ]]; then 
-                        echo "Memangkas ccache..."
-                                ccache -z  
-                                        ccache -F 0 
-                                            fi
-                                            if [[ $- == *i* ]]; then  
-                                                trim_ccache 
-                                                fi
-                                                fi
-
 # Building LLVM's
 msg "Building LLVM's ..."
 send_msg "<b>Start build ElectroWizard-Clang from <code>[ $BRANCH ]</code> branch</b>"
-chmod +x build-llvm.py
+chmod +x ./build-llvm.py
 ./build-llvm.py \
     --defines LLVM_PARALLEL_COMPILE_JOBS="$(nproc)" LLVM_PARALLEL_LINK_JOBS="$(nproc)" CMAKE_C_FLAGS=-O3 CMAKE_CXX_FLAGS=-O3 \
     --install-folder "$HOME_DIR/install" \
     --no-update \
     --no-ccache \
     --quiet-cmake \
-    --ref "release/18.x" \
+    --branch "release/18.x" \
     --shallow-clone \
     --targets ARM AArch64 X86 \
-    --vendor-string "ElectroWizard"
+    --vendor-string ElectroWizard
 
 # Check if the final clang binary exists or not
 for file in install/bin/clang-1*; do
