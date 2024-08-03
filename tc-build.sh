@@ -17,6 +17,8 @@ export CCACHE=1
 
 # Get home directory
 HOME_DIR="$(pwd)"
+install="$HOME_DIR/install"
+src="$HOME_DIR/src"
 
 # Telegram Setup
 git clone --depth=1 https://github.com/elynord/Telegram Telegram
@@ -43,15 +45,14 @@ msg "Building LLVM's ..."
 send_msg "<b>Start build ElectroWizard-Clang from <code>[ $BRANCH ]</code> branch</b>"
 chmod +x ./build-llvm.py
 ./build-llvm.py \
-    --defines LLVM_PARALLEL_COMPILE_JOBS="$(nproc)" LLVM_PARALLEL_LINK_JOBS="$(nproc)" CMAKE_C_FLAGS=-O3 CMAKE_CXX_FLAGS=-O3 \
-    --install-folder "$HOME_DIR/install" \
+    --install-folder "$install" \
     --no-update \
     --no-ccache \
     --quiet-cmake \
     --branch "release/18.x" \
     --shallow-clone \
-    --targets ARM AArch64 X86 \
-    --vendor-string ElectroWizard
+    --targets AArch64 X86 \
+    --vendor-string "ElectroWizard"
 
 # Check if the final clang binary exists or not
 for file in install/bin/clang-1*; do
@@ -68,7 +69,7 @@ done
 msg "Build binutils ..."
 chmod +x build-binutils.py
 ./build-binutils.py \
-    --install-folder "$HOME_DIR/install" \
+    --install-folder "$install" \
     --targets arm aarch64 x86_64
 
 rm -fr install/include
